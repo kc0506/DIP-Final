@@ -35,6 +35,11 @@ def get_arg_names(frame: types.FrameType, pos=0) -> list[str]:
                 return [get_id(a.args[0])[0] + "_" + a.func.id]  # type: ignore
             if isinstance(a, ast.ListComp):
                 raise Exception()
+            if isinstance(a, ast.Attribute):
+                return [get_id(a.value)[0]]
+            if isinstance(a, ast.BinOp):
+                return [get_id(a.left)[0]]
+            print("warning:", type(a))
             raise Exception()
 
         return get_id(arg)

@@ -1,5 +1,11 @@
+from time import time
+
 import cv2
+import numpy as np
+from median import median_filter
 from morphology import SE, dilation, erosion
+from noise import gaussian_noise, uniform_pepper, uniform_salt
+from order import BasicOrder, RGBOrder
 from sample import Sample, get_sample
 from task import get_func_name, task, write_ref
 from utils import write_img
@@ -10,6 +16,9 @@ from utils import write_img
 
 @task()
 def example():
+    """
+    An example showing how to use utility functions.
+    """
 
     @task()
     def task1():
@@ -23,5 +32,3 @@ def example():
     lena = get_sample(Sample.LENA, gray=True)
     write_ref(dilation(lena, SE.circle(3)))
     task1()
-
-example()

@@ -68,4 +68,4 @@ def is_gray(img: np.ndarray) -> bool:
 
 
 def is_color(img: np.ndarray) -> bool:
-    return len(img.shape) == 3 and img.dtype == np.uint8
+    return len(img.shape) == 3
