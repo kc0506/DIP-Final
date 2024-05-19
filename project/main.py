@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from median import median_filter
 from morphology import SE, dilation, erosion
+from hypergraph import HG_dilation, HG_reosion, HG_opening, HG_closing
 from noise import gaussian_noise, uniform_pepper, uniform_salt
 from order import BasicOrder, RGBOrder
 from sample import Sample, get_sample
