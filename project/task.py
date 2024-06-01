@@ -39,6 +39,8 @@ def get_arg_names(frame: types.FrameType, pos=0) -> list[str]:
                 return [get_id(a.value)[0]]
             if isinstance(a, ast.BinOp):
                 return [get_id(a.left)[0]]
+            if isinstance(a, ast.Subscript):
+                return [get_id(a.value)[0]]
             print("warning:", type(a))
             raise Exception()
 
@@ -95,13 +97,15 @@ def write_ref(img: np.ndarray | list[np.ndarray], _name: str | list[str] = ""):
 
     if isinstance(img, np.ndarray):
         write_img(out_dir / names[0], img)
-        return
+        return [out_dir / (n + ".png") for n in names]
 
     if len(names) != len(img):
         names = [f"{names[0]}_{i}" for i in range(len(img))]
     assert len(names) == len(img)
     for name, i in zip(names, img):
         write_img(out_dir / name, i)
+
+    return [out_dir / (n + ".png") for n in names]
 
 
 def task(parent=None, dir_name=None):

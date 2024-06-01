@@ -1,0 +1,91 @@
+\documentclass[a4paper]{article}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=2.5cm,right=2.5cm,marginparwidth=1.75cm]{geometry}
+
+\usepackage[ruled, linesnumbered]{algorithm2e}
+\SetKwProg{Fn}{Function}{}{end}
+
+% Useful packages
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{multicol}
+\usepackage{url}
+
+% Chinese Support
+\usepackage[CJKmath=true,AutoFakeBold=3,AutoFakeSlant=.2]{xeCJK}   
+\setCJKmainfont{NOTOSERIFTC-MEDIUM.OTF}
+%\setCJKmainfont{fonts/NOTOSERIFTC-MEDIUM.OTF}
+
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{=\vcentcolon}
+
+\usepackage{framed}
+\usepackage{graphicx}
+
+% Figures
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+\usepackage{caption}
+\usepackage{wrapfig}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{subcaption}
+
+\setlength\parindent{0pt}
+\linespread{1.25}
+
+
+\graphicspath{../imgaes}
+% \newcommand{\twocolimg}[4]{\begin{figure}[!ht]
+%     \centering
+%     \begin{subfigure}[t]{.4\textwidth}
+%     \centering
+%     \includegraphics[width=0.9\linewidth]{#2}
+%     \caption{#1}
+%     \end{subfigure}
+%     \begin{subfigure}[t]{.4\textwidth}
+%     \centering
+%     \includegraphics[width=0.9\linewidth]{#4}
+%     \caption{#3}
+%     \end{subfigure}
+% \end{figure}}
+
+\usepackage{wrapfig}
+
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue},
+  language=Python
+}
+
+% \theoremstyle{definition}
+% \newtheorem*{definition}{Definition}
+
+% \newtheorem*{theorem*}{Theorem}
+% \newtheorem*{lemma}{Lemma}
+
+
+\title{DIP Final Report}
+
+
+\begin{document}
+\SetKwProg{Fn}{Function}{}{end}
+\maketitle
+
+\newpage
+\input{denoise.tex}
+\input{compare_gray.tex}
+\input{compare_mode.tex}
+\input{compare_order.tex}
+
+
+\end{document}

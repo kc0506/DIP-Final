@@ -1,16 +1,23 @@
+import atexit
 import re
 from hashlib import sha1
 from time import time
 from turtle import shape
-from typing import Callable
+from typing import Callable, Literal
 
 import cv2
 import numpy as np
-from order import ColorOrder, get_default_order
+from order import BasicOrder, ColorOrder, RGBOrder, get_default_order
+from sample import Sample, get_sample
+from task import write_ref
 from utils import is_bool, is_color, is_gray, write_img
 
 
 class SE:
+    """
+    Structuring element
+    """
+
     @staticmethod
     def circle(r: int, thickness: int = -1) -> np.ndarray:
         d = 2 * r
@@ -21,6 +28,13 @@ class SE:
     @staticmethod
     def square(r: int) -> np.ndarray:
         return np.full((r, r), 1)
+
+    @staticmethod
+    def cross(r: int) -> np.ndarray:
+        img = np.zeros((2 * r + 1, 2 * r + 1), dtype=np.uint8)
+        cv2.line(img, (r, 0), (r, 2 * r), 255.0)  # type: ignore
+        cv2.line(img, (0, r), (2 * r, r), 255.0)  # type: ignore
+        return img
 
 
 # ---------------------------------- Utility --------------------------------- #
@@ -58,6 +72,16 @@ def get_submat(arr: np.ndarray, shape: tuple[int, ...], to_pad=True) -> np.ndarr
 # ----------------------------- Dilation/Erosion ----------------------------- #
 
 
+def __get_orders(img, se: np.ndarray, order_cls: ColorOrder | None = None):
+    if is_gray(img) or is_bool(img):
+        return img
+    assert is_color(img)
+    if order_cls is None:
+        order_cls = get_default_order()
+    order_cls = BasicOrder()
+    return order_cls.to_orders(img, se)
+
+
 def __shift_and_combine(
     img: np.ndarray,
     se: np.ndarray,
@@ -67,6 +91,8 @@ def __shift_and_combine(
     """
     Internal function.
     """
+    # write_ref(orders)
+
     assert len(orders.shape) == 2
     assert len(se.shape) == 2
     assert img.shape[:2] == orders.shape[:2]
@@ -93,38 +119,117 @@ def __shift_and_combine(
     return res
 
 
-def __get_orders(img: np.ndarray, order_cls: ColorOrder | None = None):
-    if is_gray(img) or is_bool(img):
-        return img
-    assert is_color(img)
-    order_cls = get_default_order()
-    return order_cls.to_orders(img)
+
+def __shift_and_combine_fuzzy(
+    img: np.ndarray,
+    se: np.ndarray,
+    orders: np.ndarray,
+    mode: Literal["dilation", "erosion"],
+    alpha: float = 0.5,
+) -> np.ndarray:
+    """
+    Internal function.
+    """
+
+    assert len(orders.shape) == 2
+    assert len(se.shape) == 2
+    assert img.shape[:2] == orders.shape[:2]
+
+    se = se.astype(bool)
+    cx, cy = se.shape[0] // 2, se.shape[1] // 2
+
+    x, y = np.nonzero(se)
+    shift_x = x - cx
+    shift_y = y - cy
+    xs, ys = np.mgrid[: orders.shape[0], : orders.shape[1]]
+    xs: np.ndarray = np.clip(xs[:, :, np.newaxis] - shift_x, 0, orders.shape[0] - 1)
+    ys: np.ndarray = np.clip(ys[:, :, np.newaxis] - shift_y, 0, orders.shape[1] - 1)
+    order_layers = orders[xs, ys]
+    assert order_layers.shape == orders.shape + x.shape, order_layers.shape
+
+    # first normalize orders
+    order_layers = np.argsort(order_layers, axis=-1)
+    assert np.all(order_layers < order_layers.shape[-1])
+
+    if mode == "erosion":
+        order_layers = -order_layers
+
+    origin = img[xs, ys]
+    assert origin.shape[:3] == order_layers.shape
+    weights = np.exp(alpha * order_layers)
+    if len(weights.shape) < len(origin.shape):
+        weights = weights[..., None]
+    res: np.ndarray = np.sum(origin * weights, axis=2) / np.sum(weights, axis=2)
+    assert res.shape == img.shape, res.shape
+
+    return res
 
 
-def dilation(img: np.ndarray, se: np.ndarray, order_cls: ColorOrder | None = None) -> np.ndarray:
-    return __shift_and_combine(
-        img,
-        se,
-        __get_orders(img, order_cls),
-        lambda x: np.argmax(x, axis=-1),
-    )
+def dilation(
+    img: np.ndarray,
+    se: np.ndarray,
+    order_cls: ColorOrder | None = None,
+    fuzzy=False,
+    alpha: float = 0.5,
+) -> np.ndarray:
+    if not fuzzy:
+        return __shift_and_combine(
+            img,
+            se,
+            __get_orders(img, se, order_cls),
+            lambda x: np.argmax(x, axis=-1),
+        )
+    return __shift_and_combine_fuzzy(img, se, __get_orders(img, se, order_cls), "dilation", alpha)
 
 
-def erosion(img: np.ndarray, se: np.ndarray, order_cls: ColorOrder | None = None) -> np.ndarray:
-    return __shift_and_combine(
-        img,
-        se,
-        __get_orders(img, order_cls),
-        lambda x: np.argmin(x, axis=-1),
-    )
+def erosion(
+    img: np.ndarray,
+    se: np.ndarray,
+    order_cls: ColorOrder | None = None,
+    fuzzy=False,
+    alpha: float = 0.5,
+) -> np.ndarray:
+    if not fuzzy:
+        return __shift_and_combine(
+            img,
+            se,
+            __get_orders(img, se, order_cls),
+            lambda x: np.argmin(x, axis=-1),
+        )
+
+    return __shift_and_combine_fuzzy(img, se, __get_orders(img, se, order_cls), "dilation", alpha)
 
 
 # ------------------------------ Opening/Closing ----------------------------- #
 
 
-def opening(img: np.ndarray, se: np.ndarray, order_cls: ColorOrder | None = None) -> np.ndarray:
-    return dilation(erosion(img, se), se)
+def opening(
+    img: np.ndarray,
+    se: np.ndarray,
+    order_cls: ColorOrder | None = None,
+    fuzzy=False,
+    alpha: float = 0.5,
+) -> np.ndarray:
+    return dilation(
+        erosion(img, se, order_cls, fuzzy, alpha),
+        se,
+        order_cls,
+        fuzzy,
+        alpha,
+    )
 
 
-def closing(img: np.ndarray, se: np.ndarray, order_cls: ColorOrder | None = None) -> np.ndarray:
-    return erosion(dilation(img, se), se)
+def closing(
+    img: np.ndarray,
+    se: np.ndarray,
+    order_cls: ColorOrder | None = None,
+    fuzzy=False,
+    alpha: float = 0.5,
+) -> np.ndarray:
+    return erosion(
+        dilation(img, se, order_cls, fuzzy, alpha),
+        se,
+        order_cls,
+        fuzzy,
+        alpha,
+    )

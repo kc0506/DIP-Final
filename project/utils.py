@@ -8,7 +8,7 @@ import numpy as np
 
 
 def read_img(path: str) -> np.ndarray:
-    return cv2.imread(path)
+    return cv2.imread(path).astype(np.uint8)
 
 
 def write_img(path: str | os.PathLike, img: np.ndarray):
@@ -29,7 +29,7 @@ def write_img(path: str | os.PathLike, img: np.ndarray):
 # ------------------------------- Basic Utility ------------------------------ #
 
 
-def rgb_to_gray(img: np.ndarray) -> np.ndarray:
+def rgb2gray(img: np.ndarray) -> np.ndarray:
     if len(img.shape) == 2:
         return img
 
@@ -69,3 +69,11 @@ def is_gray(img: np.ndarray) -> bool:
 
 def is_color(img: np.ndarray) -> bool:
     return len(img.shape) == 3
+
+
+def rgb2hsv(img: np.ndarray) -> np.ndarray:
+    return cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+
+def hsv2rgb(img: np.ndarray) -> np.ndarray:
+    return cv2.cvtColor(img, cv2.COLOR_HSV2BGR)

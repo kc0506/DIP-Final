@@ -4,7 +4,7 @@ from functools import cache
 from typing import Literal
 
 from numpy import ndarray
-from utils import read_img, rgb_to_gray
+from utils import read_img, rgb2gray
 
 
 class Sample(enum.Enum):
@@ -16,10 +16,14 @@ _PATH_DICT: dict[Sample, str] = {
 }
 
 
+def sample_path():
+    return os.path.join(__file__, "../", "./images/samples")
+
+
 def get_sample(name: Sample, gray=False) -> ndarray:
     img = read_img(os.path.join(__file__, "../", "./images/samples", _PATH_DICT[name]))
     if gray:
-        return rgb_to_gray(img)
+        return rgb2gray(img)
     return img
 
 

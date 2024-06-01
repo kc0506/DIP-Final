@@ -45,4 +45,13 @@ def main():
     noise_exp()
 
 
-main()
+# main()
+lena = get_sample(Sample.LENA)
+lena_gray = erosion(lena, SE.circle(1), RGBOrder("median"))
+write_ref(lena_gray)
+write_ref(lena - lena_gray)
+
+diff = lena - lena_gray
+diff = opening(diff, SE.circle(2), RGBOrder("prod"))
+# diff = opening(diff, SE.cross(2), RGBOrder("prod"))
+write_ref(diff)
