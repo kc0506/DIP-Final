@@ -1,0 +1,102 @@
+% Language setting
+
+\usepackage[english]{babel} % Replace `english' with e.g. `spanish' to change language
+\usepackage[CJKmath=true,AutoFakeBold=3,AutoFakeSlant=.2]{xeCJK} % Chinese support
+\setCJKmainfont[Path=fonts/]{NOTOSERIFTC-MEDIUM.OTF}
+
+% Useful package
+\usepackage{fullpage} % initialize margin as maximum
+\usepackage[top=2cm, bottom=4.5cm, left=2.5cm, right=2.5cm]{geometry} % override specify margin
+\usepackage{amsmath,amsthm,amsfonts,amssymb,amscd} % math environment
+\usepackage{mathrsfs}
+\usepackage{enumitem} % better enumerate
+\usepackage{fancyhdr} % header/footer
+\usepackage{xcolor} % coloring
+\usepackage[most]{tcolorbox} % colorbox
+\usepackage{afterpage} % To force a picture (or float) to be on the next page.
+\usepackage{natbib} % The most common bibliography / references package
+
+\usepackage{hyperref}
+\hypersetup{%
+  colorlinks    = true,
+  linkcolor     = blue,
+  urlcolor      = blue,
+  citecolor     = blue,
+  anchorcolor   = blue,
+  filecolor     =blue,
+  linkbordercolor={0 0 1}
+}
+
+
+% Actual code
+\usepackage{listings}
+\definecolor{codebackcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{dkgreen}{rgb}{0, 0,6, 0}
+\definecolor{codegrey}{rgb}{0.5, 0.5, 0.5}
+\definecolor{codepurple}{rgb}{0.58, 0, 0.82}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{codebackcolour},
+    frame = tb,
+    aboveskip = 3mm,
+    belowskip = 3mm,
+    numbers = left,
+    numbersep=5pt,
+    numberstyle=\tiny\color{black},
+    keywordstyle = \color{blue},
+    commentstyle = \color{dkgreen},
+    stringstyle = \color{codepurple},
+    tabsize = 4,
+    basicstyle = {\small\ttfamily}, 
+    keepspaces=true,
+    breakatwhitespace=false,
+    breaklines=true,
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false, 
+}
+% \lstset{style=mystyle}  % uncomment to set this globally               
+
+
+% Pseudo-code
+\usepackage[ruled, linesnumbered]{algorithm2e} 
+\SetKwComment{Comment}{/* }{ */}
+\SetKwProg{Fn}{Function}{}{end}
+\SetKwFor{For}{for }{ do}{end}
+
+% Theorem, Lemma, Collarary, Definition, Remark, Prove
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[theorem]
+\newtheorem{corollary}{Corollary}[theorem]
+\theoremstyle{definition}   % styling from amsthm
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}       % styling form amsthm
+\newtheorem*{remark}{Remark}
+\renewcommand\qedsymbol{QED}
+% \renewcommand\qedsymbol{$\blacksquare$}
+
+
+% Custom command for solution, result, intuition, approach, ...
+\newcommand{\result}[0]{\subsubsection*{Result}}
+\newcommand{\intuition}[0]{\subsubsection*{Intuition}}
+\newcommand{\approach}[0]{\subsubsection*{Approach}}
+\newcommand{\parameter}[0]{\subsubsection*{Parameter}}
+\newcommand{\discussion}[0]{\subsubsection*{Discussion}}
+\newcommand{\bonus}[0]{\subsubsection*{Bonus}}
+
+% Solution
+\newenvironment{solution}
+  {\renewcommand\qedsymbol{$\blacksquare$}
+  \begin{proof}[Solution]}
+  {\end{proof}}
+
+% Figures
+\usepackage{float}
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+\usepackage{caption}
+\usepackage{wrapfig}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{subcaption}

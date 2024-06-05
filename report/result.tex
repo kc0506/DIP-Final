@@ -1,0 +1,84 @@
+\section*{Our Result}
+
+原始圖片：
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.22\linewidth]{../images/samples/lena.png}
+\end{figure}
+
+\subsection*{Basic Operations}
+
+下圖比較我們實作後由不同模式進行 morphological operations 的結果。
+\input{compare_mode1.tex}
+以視覺上而言並無明顯差異，和論文一致。
+
+接著比較使用不同大小的 structuring element 進行 morphological operations 的結果。
+\begin{figure}[!ht]
+    \centering
+    \input{erosion.tex}
+    \input{dilation.tex}
+    \caption{morphological operations with different structuring element size}
+\end{figure}
+可看出，隨著 structuring element size 的增加，圖片的變化也越來越明顯。
+
+\clearpage
+我們也嘗試了另一種 ordering 的方法作為參照：先將圖片轉為 HSV，接著以 $(V, S, H)$ 的順位進行比較。此外也附上轉為灰階後 morphological operations 的結果。
+
+\input{compare_order.tex}
+
+大致效果相似，不過放大觀察可以看出本論文使用的方法在不同顏色交界上最為平滑且保留細節。
+
+\clearpage
+\subsection*{Denoising}
+首先，我們在圖片中分別加入 $10\%$ 的 salt 及 pepper noise，並分別使用 opening 及 closing 進行 denoising。
+\input{noise.tex}
+\clearpage
+接著我們在許多圖片加入 $10\%$ impulse noise，並比較 open-closing，close-opening 以及 Wang 等人所提出的 hypergraph 方法 [2]。Wang 的部分為我們參考其原始論文並實作而來。
+\begin{figure}[!ht]
+    \centering
+    \input{before_noise.tex}
+    \input{co_noise.tex}
+    \input{oc_noise.tex}
+    \input{hg_noise.tex}
+    \caption*{denoising with impulse noise}
+\end{figure}
+
+\section*{Our Discussion}
+
+\subsection*{The evil \texttt{argsort}}
+這是我們在實作中遇到比較大的問題：\texttt{argsort} 遇到相同值應如何處理。這個問題並沒有在文中提及，而以 \texttt{numpy} 的實作來看，\texttt{argsort} 會回傳最早出現的 index。不過這卻會導致嚴重的問題，例如有以下的 pixels：
+\begin{align*}
+    p_1 & = (0, 0, 0)   \\
+    p_2 & = (0, 0, 0)   \\
+    p_3 & = (0, 0, 0)   \\
+    p_4 & = (255, 0, 0) \\
+\end{align*}
+顯然，我們預期 $p_4$ 的 order 最大。然而，使用 \texttt{np.argsort} 所產生的 order 如下：
+\begin{align*}
+    p_1 & = (2, 3, 3) \\
+    p_2 & = (1, 2, 2) \\
+    p_3 & = (0, 1, 1) \\
+    p_4 & = (3, 0, 0) \\
+\end{align*}
+若選擇 sum 作為 reducing function，則最後的 order 為：
+\begin{align*}
+    p_1 & = 8 \\
+    p_2 & = 5 \\
+    p_3 & = 2 \\
+    p_4 & = 3 \\
+\end{align*}
+這並不是一個合理的結果。因此，比較理想的做法是改定義 order 為「所有 pixels 中小於此 pixel 的個數」，才能避免前述的問題。在下一節的圖片中我們將呈現這個問題。
+
+
+\subsection*{Global vs. Local}
+除了前一節的問題以外，我們也發現 order 可以用兩種方式來計算：
+\begin{itemize}
+    \item Global order：將整張圖片的所有 pixels 一起排序。
+    \item Local order：針對每個 pixel，只考慮將 structuring element 放在此 pixel 時所涵蓋的 pixels。
+\end{itemize}
+\clearpage
+最終我們發現使用 local order 才能實作出論文中的效果。下圖我們呈現這兩節所提到的 pitfalls，以及實作成功的版本作為比較。
+\input{compare_global.tex}
+
+
+% \clearpage

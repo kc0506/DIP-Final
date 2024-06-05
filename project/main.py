@@ -1,17 +1,15 @@
 import os
+from pathlib import Path
 from time import time
 
 import cv2
 import numpy as np
-from experiment.compare_operation import (
-    compare_global,
-    compare_gray,
-    compare_mode1,
-    compare_order,
-)
+from experiment.basic import dilation_exp, erosion_exp, noise_exp
+from experiment.compare_operation import compare_global, compare_mode1, compare_order
 from experiment.denoise import denoise
+from hypergragh import HG_closing, HG_opening
 from median import median_filter
-from morphology import SE, dilation, erosion, opening
+from morphology import SE, closing, dilation, erosion, opening
 
 # from hypergraph import HG_dilation, HG_reosion, HG_opening, HG_closing
 from noise import gaussian_noise, uniform_pepper, uniform_salt
@@ -34,25 +32,19 @@ def example():
     @task()
     def task1():
         lena = get_sample(Sample.LENA)
-        lena =lena+ uniform_salt(lena.shape, 0.1)
-        lena = read_img(os.path.join( sample_path() , 'impulse.png')).astype(np.uint8)
-           
-        write_ref(erosion(lena, SE.circle(2), BasicOrder()),)
+        lena = lena + uniform_salt(lena.shape, 0.1)
+        lena = read_img(os.path.join(sample_path(), "impulse.png")).astype(np.uint8)
+
+        write_ref(
+            erosion(lena, SE.circle(2), BasicOrder()),
+        )
 
     # lena = get_sample(Sample.LENA, gray=True)
     # write_ref(dilation(lena, SE.circle(3)))
     task1()
 
 
-# example()
-write_ref( RGBOrder('sum').dilation(get_sample(Sample.LENA), SE.circle(3)) , 'fuck')
-
+# erosion_exp()
+# dilation_exp()
+noise_exp()
 # compare_mode1()
-# compare_order()
-# compare_gray()
-# denoise()
-# compare_global()
-
-# lena = get_sample(Sample.LENA)
-# lena_hsv = rgb2hsv(lena)
-# write_ref(dilation(lena, SE.circle(3), HSVOrder(), fuzzy=True))

@@ -10,7 +10,7 @@ import numpy as np
 from order import BasicOrder, ColorOrder, RGBOrder, get_default_order
 from sample import Sample, get_sample
 from task import write_ref
-from utils import is_bool, is_color, is_gray, write_img
+from utils import get_layers, is_bool, is_color, is_gray, remap, write_img
 
 
 class SE:
@@ -74,66 +74,66 @@ def get_submat(arr: np.ndarray, shape: tuple[int, ...], to_pad=True) -> np.ndarr
 
 def __get_orders(img, se: np.ndarray, order_cls: ColorOrder | None = None):
     if is_gray(img) or is_bool(img):
-        return img
+        return remap(get_layers(img, se), 0, se.astype(bool).sum())
+
     assert is_color(img)
     if order_cls is None:
         order_cls = get_default_order()
-    order_cls = BasicOrder()
-    return order_cls.to_orders(img, se)
+    # order_cls = BasicOrder()
+    return order_cls.to_order_layers(img, se)
 
 
-def __shift_and_combine(
+def _shift_and_combine(
     img: np.ndarray,
     se: np.ndarray,
-    orders: np.ndarray,
-    combine_func: Callable[[np.ndarray], np.ndarray],
+    order_layers: np.ndarray,
+    # combine_func: Callable[[np.ndarray], np.ndarray],
 ) -> np.ndarray:
     """
     Internal function.
     """
     # write_ref(orders)
 
-    assert len(orders.shape) == 2
+    assert len(order_layers.shape) == 3
     assert len(se.shape) == 2
-    assert img.shape[:2] == orders.shape[:2]
 
     se = se.astype(bool)
+    se_size = se.sum()
+    assert order_layers.shape == (img.shape[0], img.shape[1], se_size)
     cx, cy = se.shape[0] // 2, se.shape[1] // 2
 
     x, y = np.nonzero(se)
     shift_x = x - cx
     shift_y = y - cy
-    xs, ys = np.mgrid[: orders.shape[0], : orders.shape[1]]
-    xs: np.ndarray = np.clip(xs[:, :, np.newaxis] - shift_x, 0, orders.shape[0] - 1)
-    ys: np.ndarray = np.clip(ys[:, :, np.newaxis] - shift_y, 0, orders.shape[1] - 1)
-    order_layers = orders[xs, ys]
-    # imgs = imgs.swapaxes(-1, -2)
-    assert order_layers.shape == orders.shape + x.shape, order_layers.shape
+    # xs, ys = np.mgrid[: orders.shape[0], : orders.shape[1]]
+    # xs: np.ndarray = np.clip(xs[:, :, np.newaxis] - shift_x, 0, orders.shape[0] - 1)
+    # ys: np.ndarray = np.clip(ys[:, :, np.newaxis] - shift_y, 0, orders.shape[1] - 1)
+    # order_layers = orders[xs, ys]
+    # # imgs = imgs.swapaxes(-1, -2)
+    # assert order_layers.shape == orders.shape + x.shape, order_layers.shape
 
-    # idxs: np.ndarray = np.argmin(imgs, axis=-1)
-    idxs = combine_func(order_layers)
-    xs, ys = np.mgrid[: orders.shape[0], : orders.shape[1]]
-    xs: np.ndarray = np.clip(xs - shift_x[idxs], 0, orders.shape[0] - 1)
-    ys: np.ndarray = np.clip(ys - shift_y[idxs], 0, orders.shape[1] - 1)
+    # idxs = combine_func(order_layers)
+    idxs = np.argmax(order_layers, axis=-1)
+    xs, ys = np.mgrid[: order_layers.shape[0], : order_layers.shape[1]]
+    xs: np.ndarray = np.clip(xs - shift_x[idxs], 0, order_layers.shape[0] - 1)
+    ys: np.ndarray = np.clip(ys - shift_y[idxs], 0, order_layers.shape[1] - 1)
     res = img[xs, ys]
     return res
 
 
-
-def __shift_and_combine_fuzzy(
+def _shift_and_combine_fuzzy(
     img: np.ndarray,
     se: np.ndarray,
-    orders: np.ndarray,
-    mode: Literal["dilation", "erosion"],
+    order_layers: np.ndarray,
     alpha: float = 0.5,
 ) -> np.ndarray:
     """
     Internal function.
     """
 
-    assert len(orders.shape) == 2
+    # assert len(orders.shape) == 2
     assert len(se.shape) == 2
-    assert img.shape[:2] == orders.shape[:2]
+    assert img.shape[:2] == order_layers.shape[:2]
 
     se = se.astype(bool)
     cx, cy = se.shape[0] // 2, se.shape[1] // 2
@@ -141,22 +141,21 @@ def __shift_and_combine_fuzzy(
     x, y = np.nonzero(se)
     shift_x = x - cx
     shift_y = y - cy
-    xs, ys = np.mgrid[: orders.shape[0], : orders.shape[1]]
-    xs: np.ndarray = np.clip(xs[:, :, np.newaxis] - shift_x, 0, orders.shape[0] - 1)
-    ys: np.ndarray = np.clip(ys[:, :, np.newaxis] - shift_y, 0, orders.shape[1] - 1)
-    order_layers = orders[xs, ys]
-    assert order_layers.shape == orders.shape + x.shape, order_layers.shape
+    xs, ys = np.mgrid[: order_layers.shape[0], : order_layers.shape[1]]
+    xs: np.ndarray = np.clip(xs[:, :, np.newaxis] - shift_x, 0, order_layers.shape[0] - 1)
+    ys: np.ndarray = np.clip(ys[:, :, np.newaxis] - shift_y, 0, order_layers.shape[1] - 1)
 
     # first normalize orders
-    order_layers = np.argsort(order_layers, axis=-1)
-    assert np.all(order_layers < order_layers.shape[-1])
-
-    if mode == "erosion":
-        order_layers = -order_layers
+    # order_layers = orders[xs, ys]
+    # assert order_layers.shape == orders.shape + x.shape, order_layers.shape
+    # order_layers = np.argsort(order_layers, axis=-1)
+    # order_layers = np.argsort(orders, axis=-1)
+    # print(order_layers.shape)
+    # assert np.all(order_layers < order_layers.shape[-1])
 
     origin = img[xs, ys]
     assert origin.shape[:3] == order_layers.shape
-    weights = np.exp(alpha * order_layers)
+    weights = np.exp(alpha * order_layers.astype(np.float32))
     if len(weights.shape) < len(origin.shape):
         weights = weights[..., None]
     res: np.ndarray = np.sum(origin * weights, axis=2) / np.sum(weights, axis=2)
@@ -172,14 +171,10 @@ def dilation(
     fuzzy=False,
     alpha: float = 0.5,
 ) -> np.ndarray:
+    order_layers = __get_orders(img, se, order_cls)
     if not fuzzy:
-        return __shift_and_combine(
-            img,
-            se,
-            __get_orders(img, se, order_cls),
-            lambda x: np.argmax(x, axis=-1),
-        )
-    return __shift_and_combine_fuzzy(img, se, __get_orders(img, se, order_cls), "dilation", alpha)
+        return _shift_and_combine(img, se, order_layers)
+    return _shift_and_combine_fuzzy(img, se, order_layers, alpha)
 
 
 def erosion(
@@ -189,15 +184,10 @@ def erosion(
     fuzzy=False,
     alpha: float = 0.5,
 ) -> np.ndarray:
+    order_layers = __get_orders(img, se, order_cls) * -1
     if not fuzzy:
-        return __shift_and_combine(
-            img,
-            se,
-            __get_orders(img, se, order_cls),
-            lambda x: np.argmin(x, axis=-1),
-        )
-
-    return __shift_and_combine_fuzzy(img, se, __get_orders(img, se, order_cls), "dilation", alpha)
+        return _shift_and_combine(img, se, order_layers)
+    return _shift_and_combine_fuzzy(img, se, order_layers, alpha)
 
 
 # ------------------------------ Opening/Closing ----------------------------- #

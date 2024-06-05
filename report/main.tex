@@ -1,0 +1,79 @@
+\documentclass[12pt,a4paper]{article}
+
+\input{settings} % add packages, settings, and declarations in settings.tex
+
+% Spaceing setup
+\setlength\parindent{0pt}
+\linespread{1.1}
+
+% title
+\title{Team21 Final Report}
+\author{B10401006 洪愷希, B10401008 李彥佑, B10902138 陳德維}   % add your name
+\date{\today}   % Add the Date
+
+% Header
+
+\newcommand\department{NTU CSIE, MED}
+\newcommand\course{DIP}
+%\newcommand\hwnumber{}             % homework number
+\newcommand\AuthorOne{B10401006 洪愷希}           % Name for author 1
+\newcommand\AuthorTwo{B10401008 李彥佑}           % Name for author 2
+\newcommand\AuthorThree{B10902138 陳德維}           % Name for author 3
+
+\pagestyle{fancyplain}
+\headheight 35pt
+%\lhead{\AuthorOne}
+\lhead{\AuthorOne\\\AuthorTwo\\\AuthorThree}                 % uncomment this line for multiple authors
+%\chead{\textbf{ \course \  Homework \hwnumber}}
+\chead{\textbf{ \course \  Team21 Final Report}}
+\rhead{\department \\ \today}
+\lfoot{}
+\cfoot{\small\thepage}
+\rfoot{}
+\headsep 1.5em
+
+\begin{document}
+
+% uncomment this section to have a titile cover
+\begin{titlepage}
+    \maketitle
+    \thispagestyle{empty}
+\end{titlepage}
+
+% uncomment this section to see some latex sample
+% \section{Some Samples}
+% \input{sample.tex}
+% \newpage
+
+% \newpage
+\input{others.tex}
+
+\clearpage
+\input{result.tex}
+
+
+% Introduce the paper(name,author...) and the abstract 
+\section*{Referenced Paper}
+ [1] Sun, S.; Huang, Y.; Inoue, K.; Hara, K. Order Space-Based Morphology for Color Image Processing. \textit{J. Imaging} \textbf{2023}, 9, 139. https://doi.org/10.3390/jimaging9070139
+[2] Wang, J., Liang, G., Wu, Y., Li, Y., Hu, J. (2018). New colour morphological operators on hypergraph. In IET Image Processing (Vol. 12, Issue 5, pp. 690–695). \textit{Institution of Engineering and Technology (IET)}. https://doi.org/10.1049/iet-ipr.2017.0468
+
+
+\section*{Division of the work}
+\begin{itemize}
+    \item B10401006 洪愷希
+          \begin{itemize}
+              \item Implementation Code
+              \item \textit{Out Result}, \textit{Our Discussion} Section
+          \end{itemize}
+    \item B10401008 李彥佑
+          \begin{itemize}
+              \item Wang's Method Implementation
+          \end{itemize}
+    \item B10902138 陳德維
+          \begin{itemize}
+              \item Dataset Preparation
+              \item Proposal \& Final Report
+          \end{itemize}
+\end{itemize}
+
+\end{document}

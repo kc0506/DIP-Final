@@ -1,3 +1,5 @@
 import numpy as np
 
-print(np.argsort([[[-1,-2,-3]]], axis=-1))
+x = np.array([1, 2, 3])
+print(np.argsort(x))
+# print(np.exp(-115195))

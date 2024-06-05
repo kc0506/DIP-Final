@@ -77,3 +77,25 @@ def rgb2hsv(img: np.ndarray) -> np.ndarray:
 
 def hsv2rgb(img: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+
+
+def remap(img: np.ndarray, low: int, high: int) -> np.ndarray:
+    return np.interp(img, (img.min(), img.max()), (low, high)).astype(np.uint8)
+
+
+# ------------------------ Structuring Element Utility ----------------------- #
+
+
+def get_layers(img: np.ndarray, se: np.ndarray) -> np.ndarray:
+    se = se.astype(bool)
+    se_size = se.sum()
+    cx, cy = se.shape[0] // 2, se.shape[1] // 2
+
+    x, y = np.nonzero(se)
+    shift_x = x - cx
+    shift_y = y - cy
+    xs, ys = np.mgrid[: img.shape[0], : img.shape[1]]
+    xs: np.ndarray = np.clip(xs[:, :, np.newaxis] - shift_x, 0, img.shape[0] - 1)
+    ys: np.ndarray = np.clip(ys[:, :, np.newaxis] - shift_y, 0, img.shape[1] - 1)
+
+    return img[xs, ys]

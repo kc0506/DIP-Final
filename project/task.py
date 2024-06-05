@@ -56,7 +56,7 @@ __OUT_ATTR = "__ref__"
 
 
 def get_out_dir() -> pathlib.Path:
-    path = pathlib.Path(__file__).parent / "./images/outputs"
+    path = pathlib.Path(__file__).parent / "../images/outputs"
     path_rev = pathlib.Path()
     for s in inspect.stack()[1:]:
         frame = s.frame

@@ -81,11 +81,29 @@
 \SetKwProg{Fn}{Function}{}{end}
 \maketitle
 
+
 \newpage
-\input{denoise.tex}
-\input{compare_gray.tex}
-\input{compare_mode.tex}
-\input{compare_order.tex}
+\begin{figure}
+  \input{erosion.tex}
+\end{figure}
+
+\input{noise.tex}
+
+\begin{figure}
+  \centering
+  \input{before_noise.tex}
+  \input{oc_noise.tex}
+  \input{co_noise.tex}
+  \input{hg_noise.tex}
+\end{figure}
+
+% \input{compare_gray.tex}
+% \input{compare_mode.tex}
+% \input{compare_mode1.tex}
+% \input{compare_global.tex}
+% \input{compare_order.tex}
+
+
 
 
 \end{document}
